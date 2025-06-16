@@ -1,20 +1,20 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import loader from "../assets/loader.gif";
-import {ToastContainer,toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { setAvatarRoute } from "../utils/APIRoutes";
-import {Buffer} from "buffer";
+import { Buffer } from "buffer";
 
-export default function SetAvatar(){
+export default function SetAvatar() {
     const api = "https://api.dicebear.com/7.x/adventurer/svg?seed=";
-    const navigate=useNavigate();
-    const [avatars,setAvatars]=useState([]);
-    const [isLoading,setIsLoading]=useState(true);
-    const [selectedAvatar,setSelectedAvatar]=useState(undefined);
-    const toastOptions={
+    const navigate = useNavigate();
+    const [avatars, setAvatars] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedAvatar, setSelectedAvatar] = useState(undefined);
+    const toastOptions = {
         position: "bottom-right",
         autoClose: 8000,
         pauseOnHover: true,
@@ -22,35 +22,35 @@ export default function SetAvatar(){
         theme: "dark",
     };
 
-    useEffect(()=>{
-        const checkUser=async()=>{
-            if(!localStorage.getItem("chat-app-user")){
+    useEffect(() => {
+        const checkUser = async () => {
+            if (!localStorage.getItem("chat-app-user")) {
                 navigate("/login");
             }
         };
         checkUser();
-    },[]);
-    const setProfilePicture=async()=>{
-        if(selectedAvatar===undefined){
-            toast.error("Please select an avatar",toastOptions);
+    }, []);
+    const setProfilePicture = async () => {
+        if (selectedAvatar === undefined) {
+            toast.error("Please select an avatar", toastOptions);
         }
-        else{
-            try{
-                const user =await JSON.parse(localStorage.getItem("chat-app-user"));
-                const {data} = await axios.post(`${setAvatarRoute}/${user._id}`,{
+        else {
+            try {
+                const user = await JSON.parse(localStorage.getItem("chat-app-user"));
+                const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
                     image: avatars[selectedAvatar],
                 });
-                if(data.isSet){
-                    user.isAvatarImageSet=true;
-                    user.avatarImage=data.image;
-                    localStorage.setItem("chat-app-user",JSON.stringify(user));
+                if (data.isSet) {
+                    user.isAvatarImageSet = true;
+                    user.avatarImage = data.image;
+                    localStorage.setItem("chat-app-user", JSON.stringify(user));
                     navigate("/");
                 }
-                else{
-                    toast.error("Error setting avatar. Please try again",toastOptions);
+                else {
+                    toast.error("Error setting avatar. Please try again", toastOptions);
                 }
             }
-            catch(err){
+            catch (err) {
                 toast.error("Server error. Please check if the server is running.", toastOptions);
             }
         }
@@ -60,11 +60,9 @@ export default function SetAvatar(){
             const data = [];
             for (let i = 0; i < 4; i++) {
                 const seed = Math.round(Math.random() * 1000);
-                const image = await axios.get(
-                    `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`,
-                    { responseType: "text" }
-                );
-                data.push(image.data);
+                const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed}`;
+                data.push(avatarUrl);
+
             }
             setAvatars(data);
             setIsLoading(false);
@@ -75,35 +73,35 @@ export default function SetAvatar(){
 
     return (
         <>
-        {
-            isLoading ? <Container>
-                <img src={loader} alt="Loader" className="loader"/>
-            </Container> : (
-                <Container>
-                <div className="title-container">
-                    <h1>Pick an avatar as your profile picture</h1>
-                </div>
-                <div className="avatars">
-                    {avatars.map((avatar,index)=>{
-                        return (
-                            <div 
-                                key={index}
-                                className={`avatar ${
-                                selectedAvatar===index ? "selected" : ""}`}>
-                                <img 
-                                    src={`data:image/svg+xml;utf8,${encodeURIComponent(avatar)}`} 
-                                    alt="Avatar" 
-                                    onClick={() => setSelectedAvatar(index)} 
-                                />
-                            </div>
-                        );
-                    })}
-                </div>
-                <button className="submit-btn" onClick={setProfilePicture}>Set as Profile Picture</button>
-            </Container>
-            )
-        }
-            
+            {
+                isLoading ? <Container>
+                    <img src={loader} alt="Loader" className="loader" />
+                </Container> : (
+                    <Container>
+                        <div className="title-container">
+                            <h1>Pick an avatar as your profile picture</h1>
+                        </div>
+                        <div className="avatars">
+                            {avatars.map((avatar, index) => {
+                                return (
+                                    <div
+                                        key={index}
+                                        className={`avatar ${selectedAvatar === index ? "selected" : ""}`}>
+                                        <img
+                                            src={avatar}
+                                            alt="Avatar"
+                                            onClick={() => setSelectedAvatar(index)}
+                                        />
+
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <button className="submit-btn" onClick={setProfilePicture}>Set as Profile Picture</button>
+                    </Container>
+                )
+            }
+
             <ToastContainer />
         </>
     );
